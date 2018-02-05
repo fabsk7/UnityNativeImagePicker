@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
@@ -23,25 +23,30 @@ public static class NativeImagePicker
 		}
 	}
 
-	#if UNITY_IOS
+#if UNITY_IOS
 	[DllImport("__Internal")]
 	static extern void _CNativeImagePickerFromLibrary(bool allowEditing);
 
 	[DllImport("__Internal")]
 	static extern void _CNativeImagePickerFromCamera(bool allowEditing);
-	#endif
+#endif
 
-	public static void FromLibrary(CallbackImagePicked onPicked, bool allowedEditing = false)
-	{
-		#if UNITY_EDITOR
-		onPicked(null);
-		#elif UNITY_IOS
+    public static void FromLibrary(CallbackImagePicked onPicked, bool allowedEditing = false)
+    {
+#if UNITY_EDITOR
+        onPicked(null);
+#elif UNITY_IOS
 		GameObject go = new GameObject(GameObjectName);
 		go.AddComponent<NativeImagePickerBehaviour>().Callback = onPicked;
 
 		_CNativeImagePickerFromLibrary(allowedEditing);
-		#endif
-	}
+#elif UNITY_ANDROID
+        GameObject go = new GameObject(GameObjectName);
+        go.AddComponent<NativeImagePickerBehaviour>().Callback = onPicked;
+        AndroidJavaObject jo = new AndroidJavaObject("com.unityextensions.nativeimagepicker.NativeImagePicker");
+        jo.CallStatic("FromLibrary");
+#endif
+    }
 
 	public static void FromCamera(CallbackImagePicked onPicked, bool allowedEditing = false)
 	{
@@ -52,6 +57,11 @@ public static class NativeImagePicker
 		go.AddComponent<NativeImagePickerBehaviour>().Callback = onPicked;
 
 		_CNativeImagePickerFromCamera(allowedEditing);
-		#endif
+        #elif UNITY_ANDROID
+        GameObject go = new GameObject(GameObjectName);
+        go.AddComponent<NativeImagePickerBehaviour>().Callback = onPicked;
+        AndroidJavaObject jo = new AndroidJavaObject("com.unityextensions.nativeimagepicker.NativeImagePicker");
+        jo.CallStatic("FromCamera");
+        #endif
 	}
 }
